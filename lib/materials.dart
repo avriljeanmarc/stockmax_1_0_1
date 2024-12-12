@@ -312,7 +312,7 @@ class MyDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           SizedBox(
-            height: 100,
+            height: 120,
             child: DrawerHeader(
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
@@ -324,7 +324,7 @@ class MyDrawer extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     //color: Colors.white,
-                    //fontSize: 25.0,
+                    fontSize: 20.0,
                   ),
                 ),
               ),
