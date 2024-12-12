@@ -1,0 +1,530 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:stockmax/materials.dart';
+import 'mytable.dart';
+import 'package:provider/provider.dart';
+import 'model.dart';
+import 'more.dart';
+
+class Command extends StatelessWidget {
+  const Command({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    List<MyCommand> commands = context.watch<DataCenter>().commandList;
+    return MyScaffold(
+      addData: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AddCommand(),
+        ),
+      ),
+      appBarTitle: Text(
+        MyTable.getStringByLanguageCode(
+            'List of commands', context.read<DataCenter>().languageCode),
+      ),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 10,
+          ),
+          child: commands.isEmpty
+              ? const Icon(
+                  MyTable.commandIcon,
+                  size: 100,
+                  color: Colors.blue,
+                )
+              : ListView.builder(
+                  itemCount: commands.length,
+                  itemBuilder: (context, index) => ListTile(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MyCommandDetails(
+                          index: index,
+                        ),
+                      ),
+                    ),
+                    subtitle: Text(MyTable.formatDateToLanguageCode(
+                        context.read<DataCenter>().languageCode,
+                        commands[index].commandDate!)),
+                    leading: MyIcon(
+                      text: commands[index].itemCode![0],
+                      oddOrEven: index,
+                    ),
+                    title: Text(commands[index].commandCode!),
+                    trailing: Text(
+                      '${commands[index].itemQuantity}',
+                      //style: const TextStyle(color: Colors.green),
+                    ),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class AddCommand extends StatelessWidget {
+  const AddCommand({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+
+    String? commandCode,
+        itemCode,
+        itemQuantity,
+        supplierCode = MyTable.supplierZero,
+        commandDate;
+    double finalQuantity = 0.0;
+
+    List<MyItem> itemList = context.read<DataCenter>().itemList;
+    List<String> itemCodeList = [];
+    for (int i = 0; i < itemList.length; i++) {
+      itemCodeList.add(itemList[i].itemCode!);
+    }
+
+    String selectedValue = itemCodeList.isNotEmpty ? itemCodeList[0] : '';
+    List<DropdownMenuItem<String>> itemCodeDropDownMenuItem = [];
+
+    for (int i = 0; i < itemCodeList.length; i++) {
+      itemCodeDropDownMenuItem.add(DropdownMenuItem(
+        value: itemCodeList[i],
+        child: Text(itemCodeList[i]),
+      ));
+    }
+
+    List<MySupplier> supplierList = context.read<DataCenter>().supplierList;
+    List<String> supplierCodeList = [];
+    for (int i = 0; i < supplierList.length; i++) {
+      supplierCodeList.add(supplierList[i].supplierCode!);
+    }
+    String selectedValue1 =
+        supplierCodeList.isNotEmpty ? supplierCodeList[0] : '';
+    List<DropdownMenuItem<String>> supplierCodeDropDownMenuItem = [];
+
+    for (int i = 0; i < supplierCodeList.length; i++) {
+      supplierCodeDropDownMenuItem.add(DropdownMenuItem(
+        value: supplierCodeList[i],
+        child: Text(supplierCodeList[i]),
+      ));
+    }
+
+    DateTime? datetime;
+    bool value = false;
+    return MyScaffold(
+      actions: [
+        IconButton(
+          onPressed: () {
+            if (formKey.currentState!.validate()) {
+              formKey.currentState!.save();
+              context.read<DataCenter>().insertCommand(
+                    MyCommand(
+                      commandCode: commandCode,
+                      itemCode: itemCode,
+                      itemQuantity: double.tryParse(itemQuantity!),
+                      supplierCode: supplierCode,
+                      commandDate: commandDate,
+                    ),
+                  );
+
+              MyItem? item =
+                  context.read<DataCenter>().getItemByCode(itemCode!);
+              finalQuantity =
+                  (item!.itemQuantity! + (double.tryParse(itemQuantity!)!));
+              item = MyItem.copy(MyItem(
+                itemCode: itemCode,
+                itemQuantity: finalQuantity,
+                itemDescription: item.itemDescription,
+                itemCategory: item.itemCategory,
+                itemQuality: item.itemQuality,
+                itemUnit: item.itemUnit,
+              ));
+
+              context.read<DataCenter>().updateItem(item, itemCode: itemCode!);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(MyTable.getStringByLanguageCode('Command added',
+                      context.read<DataCenter>().languageCode)),
+                ),
+              );
+            }
+          },
+          icon: const Icon(
+            Icons.check,
+            color: Colors.white,
+          ),
+        ),
+      ],
+      showActionsButton: true,
+      showFloatingButton: false,
+      appBarTitle: Text(MyTable.getStringByLanguageCode(
+          'New command', context.read<DataCenter>().languageCode)),
+      child: Center(
+        child: SingleChildScrollView(
+          reverse: true,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+          ),
+          child: StatefulBuilder(builder: (context, setState) {
+            return Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    keyboardType: TextInputType.visiblePassword,
+                    onSaved: (newValue) => commandCode = newValue!,
+                    validator: (value) {
+                      bool isThere = false;
+                      if (value != null) {
+                        if (value.isEmpty) {
+                          return MyTable.getStringByLanguageCode(
+                              'Field is required',
+                              context.read<DataCenter>().languageCode);
+                        }
+
+                        context
+                            .read<DataCenter>()
+                            .commandList
+                            .forEach((command) {
+                          if (command.commandCode!
+                                  .toLowerCase()
+                                  .replaceAll(' ', '') ==
+                              value.toLowerCase().replaceAll(' ', '')) {
+                            isThere = true;
+                          }
+                        });
+
+                        if (isThere) {
+                          return MyTable.getStringByLanguageCode(
+                              'Duplicated value',
+                              context.read<DataCenter>().languageCode);
+                        }
+                      }
+
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: MyTable.getStringByLanguageCode(
+                          'Code', context.read<DataCenter>().languageCode),
+                    ),
+                  ),
+                  DropdownButtonFormField(
+                    decoration: InputDecoration(
+                      labelText: MyTable.getStringByLanguageCode(
+                          'Item code', context.read<DataCenter>().languageCode),
+                    ),
+                    validator: (value) {
+                      return null;
+                    },
+                    onSaved: (newValue) => itemCode = newValue as String,
+                    isExpanded: true,
+                    items: itemCodeDropDownMenuItem,
+                    value: selectedValue,
+                    onChanged: (selectedValue) {
+                      setState(() {
+                        selectedValue = selectedValue as String;
+                      });
+                    },
+                  ),
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    onSaved: (newValue) => itemQuantity = newValue!,
+                    validator: (value) {
+                      if (value != null) {
+                        if (value.isEmpty) {
+                          return MyTable.getStringByLanguageCode(
+                              'Field is required',
+                              context.read<DataCenter>().languageCode);
+                        }
+
+                        double? val = double.tryParse(value);
+                        if (val != null) {
+                          if (val < 0.0) {
+                            return MyTable.getStringByLanguageCode(
+                                'Value cannot be negative',
+                                context.read<DataCenter>().languageCode);
+                          }
+                        }
+                      }
+
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: MyTable.getStringByLanguageCode(
+                          'Quantity', context.read<DataCenter>().languageCode),
+                    ),
+                  ),
+                  TextFormField(
+                    controller: TextEditingController(
+                        text: datetime == null
+                            ? ''
+                            : DateFormat(
+                                    context.read<DataCenter>().languageCode ==
+                                            'US'
+                                        ? MyTable.enDateFormat
+                                        : MyTable.frDateFormat)
+                                .format(datetime!)),
+                    readOnly: true,
+                    onSaved: (newValue) => commandDate =
+                        DateFormat(MyTable.saveDateFormat).format(datetime!),
+                    validator: (value) {
+                      if (value != null) {
+                        if (value.isEmpty) {
+                          return MyTable.getStringByLanguageCode(
+                              'Field is required',
+                              context.read<DataCenter>().languageCode);
+                        }
+                      }
+
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        onPressed: () => showDatePicker(
+                                locale: Locale(
+                                    context.read<DataCenter>().languageCode),
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(1800),
+                                lastDate: DateTime(5000))
+                            .then((value) => setState(() {
+                                  datetime = value;
+                                })),
+                        icon: const Icon(
+                          Icons.calendar_month,
+                        ),
+                      ),
+                      labelText: MyTable.getStringByLanguageCode(
+                          'Date', context.read<DataCenter>().languageCode),
+                    ),
+                  ),
+                  if (value) //if (context.read<DataCenter>().addCommandSupplierCodeField)
+                    DropdownButtonFormField(
+                      decoration: InputDecoration(
+                        labelText: MyTable.getStringByLanguageCode(
+                            'Supplier code',
+                            context.read<DataCenter>().languageCode),
+                      ),
+                      validator: (value) {
+                        return null;
+                      },
+                      onSaved: (newValue) => supplierCode = newValue as String,
+                      isExpanded: true,
+                      items: supplierCodeDropDownMenuItem,
+                      value: selectedValue1,
+                      onChanged: (selectedValue) {
+                        setState(() {
+                          selectedValue1 = selectedValue as String;
+                        });
+                      },
+                    ),
+                  /*TextFormField(
+                    onChanged: (value) => _finalQuantity,
+                    /*onSaved: (newValue) => _finalQuantity,
+                    validator: (value) {
+                      return null;
+                    },*/
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: MyTable.getStringByLanguageCode(
+                          'Final quantity', context.read<DataCenter>().languageCode),
+                    ),
+                  ),*/
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(MyTable.getStringByLanguageCode(
+                        'Add supplier code field',
+                        context.read<DataCenter>().languageCode)),
+                    value: value,
+                    onChanged: (bool value) {
+                      setState(() {
+                        value = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class MyCommandDetails extends StatelessWidget {
+  final int index;
+  const MyCommandDetails({super.key, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    MyCommand command = context.read<DataCenter>().commandList[index];
+    return MyScaffold(
+        showActionsButton: true,
+        showFloatingButton: false,
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeWidget(),
+              ),
+            ),
+            icon: const Icon(
+              Icons.home,
+            ),
+          ),
+          PopupMenuButton(
+            itemBuilder: (context) => [
+              /*PopupMenuItem(
+                child: Text(
+                  MyTable.getStringByLanguageCode(
+                      'Edit', context.read<DataCenter>().languageCode),
+                ),
+                onTap: () {
+                  Future.delayed(
+                      const Duration(seconds: 0),
+                      () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditCommand(
+                                index: index,
+                              ),
+                            ),
+                          ));
+
+                  return;
+                },
+              ),*/
+              PopupMenuItem(
+                onTap: () {
+                  Future.delayed(
+                      const Duration(seconds: 0),
+                      () => {
+                            showDialog<void>(
+                              context: context,
+                              barrierDismissible:
+                                  false, // user must tap button!
+                              builder: (context) => AlertDialog(
+                                title: Column(children: [
+                                  Text(
+                                    MyTable.getStringByLanguageCode(
+                                        'Are you sure you want to delete',
+                                        context
+                                            .read<DataCenter>()
+                                            .languageCode),
+                                  ),
+                                  Text(
+                                    command.commandCode!,
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ]),
+                                actions: [
+                                  TextButton(
+                                    child: const Text('OK'),
+                                    onPressed: () {
+                                      context.read<DataCenter>().deleteRow(
+                                            MyTable.command,
+                                            MyTable.commandCodeField,
+                                            command.commandCode!,
+                                          );
+
+                                      MyItem? item = context
+                                          .read<DataCenter>()
+                                          .getItemByCode(command.itemCode!);
+
+                                      item = MyItem.copy(MyItem(
+                                        itemCode: command.itemCode!,
+                                        itemQuantity: item!.itemQuantity! -
+                                            command.itemQuantity!,
+                                      ));
+
+                                      context.read<DataCenter>().updateItem(
+                                          item,
+                                          itemCode: command.itemCode!);
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text('CANCEL'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            )
+                          });
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  MyTable.getStringByLanguageCode(
+                      'Delete', context.read<DataCenter>().languageCode),
+                ),
+              ),
+            ],
+          ),
+        ],
+        appBarTitle: Text(command.commandCode!),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 20,
+          ),
+          child: Center(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ListTile(
+                subtitle: Text(command.commandCode!),
+                title: Text(
+                  MyTable.getStringByLanguageCode(
+                      'Code', context.read<DataCenter>().languageCode),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListTile(
+                subtitle: Text(command.itemCode!),
+                title: Text(
+                  MyTable.getStringByLanguageCode(
+                      'Item code', context.read<DataCenter>().languageCode),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListTile(
+                subtitle: Text(command.itemQuantity!.toString()),
+                title: Text(
+                  MyTable.getStringByLanguageCode(
+                      'Quantity', context.read<DataCenter>().languageCode),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (command.supplierCode!.isNotEmpty &&
+                  command.supplierCode != MyTable.supplierZero)
+                ListTile(
+                  subtitle: Text(command.supplierCode!),
+                  title: Text(
+                    MyTable.getStringByLanguageCode('Supplier code',
+                        context.read<DataCenter>().languageCode),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ListTile(
+                subtitle: Text(MyTable.formatDateToLanguageCode(
+                    context.read<DataCenter>().languageCode,
+                    command.commandDate!)),
+                title: Text(
+                  MyTable.getStringByLanguageCode(
+                      'Date', context.read<DataCenter>().languageCode),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ]),
+          ),
+        ));
+  }
+}
