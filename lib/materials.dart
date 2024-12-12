@@ -144,8 +144,8 @@ class MyScaffold extends StatelessWidget {
   final bool showFloatingButton;
   final bool showActionsButton;
   final MyDrawer? drawer;
-
   //final MyBottomNavigationBar? bottomNavigationBar;
+
   final List<Widget>? actions;
   const MyScaffold({
     super.key,
@@ -156,7 +156,7 @@ class MyScaffold extends StatelessWidget {
     this.showActionsButton = false,
     this.drawer,
     //this.bottomNavigationBar,
-    this.actions,
+    this.actions, //.addData(IconButton(onPressed: () {}, icon: Icon(Icons.home))),
   });
 
   @override

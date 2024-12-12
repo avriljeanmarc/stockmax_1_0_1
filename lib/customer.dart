@@ -74,6 +74,17 @@ class AddCustomer extends StatelessWidget {
     return MyScaffold(
       actions: [
         IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
+        IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
               formKey.currentState!.save();
@@ -400,6 +411,17 @@ class EditCustomer extends StatelessWidget {
 
     return MyScaffold(
       actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
         IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {

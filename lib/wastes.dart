@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:stockmax/more.dart';
 import 'model.dart';
 import 'package:provider/provider.dart';
 import 'materials.dart';
@@ -87,6 +88,17 @@ class AddWastes extends StatelessWidget {
 
     return MyScaffold(
       actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
         IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {

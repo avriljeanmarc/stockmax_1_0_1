@@ -23,6 +23,7 @@ void main() {
           ],
           title: 'Stockmax',
           theme: ThemeData(
+              //textTheme: TextTheme(displayLarge: TextStyle(fontSize: 20.0)),
               brightness: _context.watch<DataCenter>().appTheme == 'light'
                   ? Brightness.light
                   : Brightness.dark,

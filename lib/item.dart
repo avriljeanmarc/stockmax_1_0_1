@@ -60,7 +60,10 @@ class Item extends StatelessWidget {
                           )
                         : Text(
                             '${items[index].itemQuantity}',
-                            style: const TextStyle(color: Colors.green),
+                            style: const TextStyle(
+                              color: Colors.green,
+                              //fontSize: 20.0,
+                            ),
                           ),
                   ),
                 ),
@@ -85,6 +88,17 @@ class AddItem extends StatelessWidget {
 
     return MyScaffold(
       actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
         IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
@@ -263,6 +277,17 @@ class EditItemPrice extends StatelessWidget {
     return MyScaffold(
       showActionsButton: true,
       actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
         IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
@@ -450,6 +475,17 @@ class EditItem extends StatelessWidget {
     return MyScaffold(
       actions: [
         IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
+        IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
               formKey.currentState!.save();
@@ -477,7 +513,7 @@ class EditItem extends StatelessWidget {
           },
           icon: const Icon(
             Icons.check,
-            color: Colors.white,
+            //color: Colors.white,
           ),
         ),
       ],

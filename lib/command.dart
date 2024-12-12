@@ -113,9 +113,20 @@ class AddCommand extends StatelessWidget {
     }
 
     DateTime? datetime;
-    bool value = false;
+    bool _value = false;
     return MyScaffold(
       actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
         IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
@@ -302,7 +313,7 @@ class AddCommand extends StatelessWidget {
                           'Date', context.read<DataCenter>().languageCode),
                     ),
                   ),
-                  if (value) //if (context.read<DataCenter>().addCommandSupplierCodeField)
+                  if (_value && supplierCodeList.isNotEmpty)
                     DropdownButtonFormField(
                       decoration: InputDecoration(
                         labelText: MyTable.getStringByLanguageCode(
@@ -323,15 +334,16 @@ class AddCommand extends StatelessWidget {
                       },
                     ),
                   /*TextFormField(
-                    onChanged: (value) => _finalQuantity,
-                    /*onSaved: (newValue) => _finalQuantity,
+                    onChanged: (value) => finalQuantity,
+                    /*onSaved: (newValue) => finalQuantity,
                     validator: (value) {
                       return null;
                     },*/
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: MyTable.getStringByLanguageCode(
-                          'Final quantity', context.read<DataCenter>().languageCode),
+                          'Final quantity',
+                          context.read<DataCenter>().languageCode),
                     ),
                   ),*/
                   SwitchListTile(
@@ -339,10 +351,10 @@ class AddCommand extends StatelessWidget {
                     title: Text(MyTable.getStringByLanguageCode(
                         'Add supplier code field',
                         context.read<DataCenter>().languageCode)),
-                    value: value,
+                    value: _value,
                     onChanged: (bool value) {
                       setState(() {
-                        value = value;
+                        _value = value;
                       });
                     },
                   ),

@@ -104,10 +104,21 @@ class AddSale extends StatelessWidget {
     }
 
     DateTime? datetime;
-    bool value = false;
+    bool _value = false;
 
     return MyScaffold(
       actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeWidget(),
+            ),
+          ),
+          icon: const Icon(
+            Icons.home,
+          ),
+        ),
         IconButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
@@ -351,7 +362,7 @@ class AddSale extends StatelessWidget {
                           'Date', context.read<DataCenter>().languageCode),
                     ),
                   ),
-                  if (value) //if (context.read<DataCenter>().addSaleCustomerCodeField)
+                  if (_value && customerCodeList.isNotEmpty)
                     DropdownButtonFormField(
                       decoration: InputDecoration(
                         labelText: MyTable.getStringByLanguageCode(
@@ -377,10 +388,10 @@ class AddSale extends StatelessWidget {
                         MyTable.getStringByLanguageCode('Add customer field',
                             context.read<DataCenter>().languageCode),
                       ),
-                      value: value,
+                      value: _value,
                       onChanged: (bool value) {
                         setState(() {
-                          value = value;
+                          _value = value;
                         });
                       }),
                 ],
