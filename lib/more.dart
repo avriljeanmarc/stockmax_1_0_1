@@ -381,13 +381,19 @@ class ImportExcelSheet extends StatelessWidget {
   }
 
   void import(int index, BuildContext context) async {
-    FilePickerResult? file = await FilePicker.platform.pickFiles(
+    /*FilePickerResult? file = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['xlsx', 'csv', 'xls'],
-    );
+    );*/
 
-    if (file != null && file.files.isNotEmpty) {
-      Uint8List bytes = File(file.files.first.path!).readAsBytesSync();
+
+    List<PlatformFile> files = await FilePicker.pickFiles(
+  type: FileType.custom,
+  allowedExtensions: ['xlsx', 'csv', 'xls'],
+);
+
+    if (files.isNotEmpty) {
+      Uint8List bytes = File(files.first.path!).readAsBytesSync();
       Excel excel = Excel.decodeBytes(bytes);
       List<Map<String, Object?>> excelSheet = [];
 
